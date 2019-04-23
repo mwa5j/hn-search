@@ -1,13 +1,17 @@
+// main component
+
 import React from 'react'
+import store from '../../store'
+import {addResult} from '../../actions'
+import {connect} from 'react-redux'
 
 import '../../css/search.css'
 
-export default class Search extends React.Component {
+class Search extends React.Component {
     constructor(props){
         super(props)
         this.state = {
             query: "",
-            results: [],
         }
     }
 
@@ -22,13 +26,11 @@ export default class Search extends React.Component {
         fetch('http://hn.algolia.com/api/v1/search?query=' + this.state.query)
             .then(response => response.json())
             .then(data => {
-                const tempResults = []
+                const results = []
                 for(var i = 0; i < data.hits.length; i++){
-                    tempResults.push(data.hits[i])
+                    results.push(data.hits[i])
                 }
-                this.setState({
-                    results: tempResults
-                })
+                store.dispatch(addResult(results))
             })
             .catch(error => {
                 console.log(error.message)
@@ -37,18 +39,14 @@ export default class Search extends React.Component {
     }
 
     render(){
-
-        console.log(this.state.results)
-        const { query } = this.state
-
         return(
             <div>
                 <form onSubmit={e => this.submitQuery(e)}>
                     <input 
                         className="search-bar"
                         type="text"
-                        name={"query"}
-                        value={query} 
+                        name="query"
+                        value={this.state.query} 
                         onChange={this.onChange}
                     />
                     <input
@@ -57,12 +55,8 @@ export default class Search extends React.Component {
                     />
                 </form>
                 <div className="result-list-container">
-                    {this.state.results.map((result) => (
-                        <div className="result-container">
-                            <a className="title" href={result.url}>{result.title}</a>
-                            <t>{result.url}</t>
-                            <t>{result.created_at}</t>
-                        </div>
+                    {this.props.results.map((result) => (
+                        <List key={result.created_at_i} title={result.title} url={result.url} created_at={result.created_at}/>
                     ))}
                 </div>
             </div>
@@ -70,3 +64,21 @@ export default class Search extends React.Component {
         )
     }
 }
+
+// functional component to display individually formatted reaults
+const List = props => (
+    <div className="result-container">
+        <a className="result-title" href={props.url}>{props.title}</a>
+        <small className="result-subtitle">{props.url}</small>
+        <small className="result-subtitile">{props.created_at}</small>
+    </div>
+)
+
+// maps the redux state changes to props for Search
+const mapStateToProps = (state) => {
+    return{
+        results: state.results
+    }
+}
+
+export default connect(mapStateToProps)(Search)

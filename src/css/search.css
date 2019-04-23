@@ -17,6 +17,10 @@
     margin-bottom: 20px;
 }
 
-.title {
-    font-size: 18
+.result-title {
+    font-size: 18px;
+}
+
+.result-subtitle {
+    font-size: 12px;
 }
